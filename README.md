@@ -15,6 +15,11 @@ This app is intentionally minimal and performance-first. UI polish is welcome on
 - Optional chat with a hard OFF toggle (zero overhead when off)
 - Tiny buffers (5ms frames, small jitter buffer)
 
+## ⬇️ Downloads
+
+Ready-to-run builds are published on the [Releases](https://github.com/jab0c/LanVoice/releases) page (Windows `.exe` + macOS `.app` zipped).
+Latest build: [Latest Release](https://github.com/jab0c/LanVoice/releases/latest)
+
 ## 🧠 How It Works
 
 ```
