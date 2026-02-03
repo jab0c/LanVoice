@@ -954,6 +954,10 @@ class LanVoiceApp(tk.Tk):
 
         item = self.rooms_tree.focus()
         if not item:
+            sel = self.rooms_tree.selection()
+            if sel:
+                item = sel[0]
+        if not item:
             return
         room_id = self.rooms_tree.item(item, "values")[3] if False else None  # placeholder
         # We store room_id in iid
@@ -1108,14 +1112,36 @@ class LanVoiceApp(tk.Tk):
             if info.last_seen < cutoff:
                 self.rooms.pop(rid, None)
 
-        # repopulate tree
-        for iid in self.rooms_tree.get_children():
-            self.rooms_tree.delete(iid)
+        # Update tree incrementally to preserve selection and avoid flicker
+        selected = self.rooms_tree.selection()
+        selected_id = selected[0] if selected else None
 
+        existing = set(self.rooms_tree.get_children())
+        current = set(self.rooms.keys())
+
+        # Remove stale rows
+        for rid in existing - current:
+            try:
+                self.rooms_tree.delete(rid)
+            except Exception:
+                pass
+
+        # Add/update rows
         for rid, info in sorted(self.rooms.items(), key=lambda kv: kv[1].room_name.lower()):
-            # Don't show our own hosted room if hosting (optional)
             users = f"{info.users}/{info.max_users}"
-            self.rooms_tree.insert("", tk.END, iid=rid, values=(info.room_name, info.host_ip, users))
+            values = (info.room_name, info.host_ip, users)
+            if rid in existing:
+                try:
+                    self.rooms_tree.item(rid, values=values)
+                except Exception:
+                    pass
+            else:
+                self.rooms_tree.insert("", tk.END, iid=rid, values=values)
+
+        # Restore selection if still present
+        if selected_id and selected_id in self.rooms_tree.get_children():
+            self.rooms_tree.selection_set(selected_id)
+            self.rooms_tree.focus(selected_id)
 
         self.after(300, self._ui_refresh_rooms)
 
